@@ -1,7 +1,24 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
+import uploadOnCloudinary from "../utils/cloudinary.js"
+import { ApiResponse } from "../utils/ApiResponse.js";
 const registerUser = asyncHandler ( async (req,res) => {
+
+    // get user details from frontend
+    // validation - not empty
+    // check if user already exists: username, email
+    // check for images, check for avatar
+    // upload them to cloudinary, avatar
+
+    // create user object - create entry in db
+    // remove password and refresh token field from response
+    // check for user creation
+    // return res
+
+
+
+
     // get the data from request body
     const {fullname, email,username,password} = req.body
     //validate the data from req.body weather it is Empty
@@ -17,6 +34,39 @@ const registerUser = asyncHandler ( async (req,res) => {
     if (existingUser) {
         throw new ApiError(409,"User already exists with this email or username")
     }
+
+    const avatarLocalPath = req.files?.avator[0]?.path
+    const coverImagePath = req.files?.coverImage[0].path
+    
+    
+    if(!avatarLocalPath) {
+        throw new ApiError(400,"Avator file is Required")
+    }
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
+    const coverImage = await uploadOnCloudinary(coverImagePath)
+
+    if (!avatar) {
+        throw new ApiError(400,"Avator file is not Uploaded on Cloudinary")
+    }
+    const user = await User.create({
+        fullname,
+        avatar: avatar.url,
+        coverImage: coverImage?.url || "",
+        email,
+        password,
+        username: username.toLowerCase()
+    })
+    const isUserCreated = await User.findById(user._id).select(
+        "-password -refreshToken"
+    )
+    if(!isUserCreated){
+        throw new ApiError(500,"User not found in DB")
+    }
+
+    const response = new ApiResponse(201,"User Created Successfully")
+    return res.status(201).json(response)
+
+
     
 })
 

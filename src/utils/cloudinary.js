@@ -1,5 +1,6 @@
 import {v2 as cloudinary} from "cloudinary"
 import fs from "fs"
+import { upload } from "../middlewares/multer.middleware";
 
 cloudinary.config({
     cloud_name : process.env.CLOUDINARY_CLOUD_NAME,
@@ -21,3 +22,4 @@ const uploadOnCloudinary = async (localFile) => {
         return null
     }
 }
+export default uploadOnCloudinary

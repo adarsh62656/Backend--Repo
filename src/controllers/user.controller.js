@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import uploadOnCloudinary from "../utils/cloudinary.js"
+import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 const registerUser = asyncHandler ( async (req,res) => {
 
@@ -23,35 +23,37 @@ const registerUser = asyncHandler ( async (req,res) => {
     const {fullname, email,username,password} = req.body
     //validate the data from req.body weather it is Empty
     if (
-        [fullname, email,username,password].send((field) => field.trim()==="")
+        [fullname, email,username,password].some((field) => field.trim()==="")
     ) {
         throw new ApiError(409,"Field Not Found")
     }
     //Check if User exists
-    const existingUser = User.findOne({
+    const existingUser = await User.findOne({
         $or: [{username},{email}]
     })
     if (existingUser) {
         throw new ApiError(409,"User already exists with this email or username")
     }
-
-    const avatarLocalPath = req.files?.avator[0]?.path
-    const coverImagePath = req.files?.coverImage[0].path
+    console.log(req.files)
+    const avatarLocalPath = req.files?.avatar[0]?.path
+    const coverImagePath = req.files?.coverImage[0]?.path
     
     
     if(!avatarLocalPath) {
-        throw new ApiError(400,"Avator file is Required")
+        throw new ApiError(400,"Avatar file is Required")   
     }
+    console.log(avatarLocalPath)
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImagePath)
 
     if (!avatar) {
-        throw new ApiError(400,"Avator file is not Uploaded on Cloudinary")
+        throw new ApiError(400,"Avatar file is not Uploaded on Cloudinary")
     }
     const user = await User.create({
         fullname,
         avatar: avatar.url,
         coverImage: coverImage?.url || "",
+        fullName: fullname,
         email,
         password,
         username: username.toLowerCase()
@@ -63,7 +65,7 @@ const registerUser = asyncHandler ( async (req,res) => {
         throw new ApiError(500,"User not found in DB")
     }
 
-    const response = new ApiResponse(201,"User Created Successfully")
+    const response = new ApiResponse(201,"User Created Successfully",isUserCreated)
     return res.status(201).json(response)
 
 

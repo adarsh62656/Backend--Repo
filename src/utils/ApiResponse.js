@@ -6,7 +6,7 @@ class ApiResponse {
         this.statusCode = statusCode;
         this.message = message;
         this.data = data;
-        this.success = StatusCode < 400;
+        this.success = statusCode < 400;
     }
 }
 export {ApiResponse}

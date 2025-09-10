@@ -1,11 +1,11 @@
 import {v2 as cloudinary} from "cloudinary"
 import fs from "fs"
-import { upload } from "../middlewares/multer.middleware";
+import { upload } from "../middlewares/multer.middleware.js";
 
 cloudinary.config({
     cloud_name : process.env.CLOUDINARY_CLOUD_NAME,
     api_key : process.env.CLOUDINARY_API_KEY,
-    api_token :  process.env.CLOUDINARY_API_SECRET
+    api_secret :  process.env.CLOUDINARY_API_SECRET
 });
 
 const uploadOnCloudinary = async (localFile) => {
@@ -18,8 +18,9 @@ const uploadOnCloudinary = async (localFile) => {
         return response;
         
     } catch (error) {
+        console.log(error)
         fs.unlinkSync(localFile)
         return null
     }
 }
-export default uploadOnCloudinary
+export {uploadOnCloudinary}
